@@ -1,4 +1,4 @@
-module github.com/89z/googleplay
+module github.com/JoKr4/googleplay
 
 go 1.18
 
