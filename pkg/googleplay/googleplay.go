@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	gp "github.com/89z/googleplay"
+	gp "github.com/JoKr4/googleplay"
 )
 
 func Header(platform string, agent int64) (*gp.Header, error) {
