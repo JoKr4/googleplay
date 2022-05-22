@@ -7,7 +7,7 @@ import (
 	gp "github.com/JoKr4/googleplay"
 )
 
-func Header(platform string, agent int64) (*gp.Header, error) {
+func GetHeader(platform string, agent int64) (*gp.Header, error) {
 	cache, err := os.UserCacheDir()
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func Header(platform string, agent int64) (*gp.Header, error) {
 	return token.Header(device.AndroidID, gp.Agents[agent])
 }
 
-func Details(head *gp.Header, app string) (*gp.Details, error) {
+func GetDetails(head *gp.Header, app string) (*gp.Details, error) {
 	details, err := head.Details(app)
 	if err != nil {
 		return nil, err
