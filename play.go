@@ -1,11 +1,11 @@
 package googleplay
+// github.com/89z
 
 import (
    "bufio"
    "errors"
    "github.com/89z/format"
    "github.com/89z/format/crypto"
-   "github.com/89z/format/protobuf"
    "io"
    "net/http"
    "net/url"
@@ -14,7 +14,7 @@ import (
    "time"
 )
 
-func (t Token) Header(androidID Fixed64, agent int64) (*Header, error) {
+func (t Token) Header(androidID uint64, single bool) (*Header, error) {
    val := url.Values{
       "Token": {t.Token},
       "service": {"oauth2:https://www.googleapis.com/auth/googleplay"},
@@ -38,9 +38,29 @@ func (t Token) Header(androidID Fixed64, agent int64) (*Header, error) {
    var head Header
    head.Auth = parseQuery(res.Body).Get("Auth")
    head.SDK = 9
-   head.AndroidID = uint64(androidID)
-   head.VersionCode = agent
+   head.AndroidID = androidID
+   if single {
+      head.VersionCode = 8091_9999 // single APK
+   } else {
+      head.VersionCode = 9999_9999
+   }
    return &head, nil
+}
+
+const Sleep = 4 * time.Second
+
+var LogLevel format.LogLevel
+
+func parseQuery(query io.Reader) url.Values {
+   vals := make(url.Values)
+   buf := bufio.NewScanner(query)
+   for buf.Scan() {
+      key, val, ok := strings.Cut(buf.Text(), "=")
+      if ok {
+         vals.Add(key, val)
+      }
+   }
+   return vals
 }
 
 type Header struct {
@@ -93,51 +113,7 @@ func (h Header) Purchase(app string) error {
    return nil
 }
 
-type UserAgent map[int64]int64
-
-var Agents = UserAgent{
-   0: 9999_9999,
-   1: 8091_9999, // single APK
-}
-
-func (u UserAgent) String() string {
-   var buf []byte
-   buf = append(buf, "User-Agent"...)
-   for key, val := range u {
-      buf = append(buf, '\n')
-      buf = strconv.AppendInt(buf, key, 10)
-      buf = append(buf, ": "...)
-      buf = strconv.AppendInt(buf, val, 10)
-   }
-   return string(buf)
-}
-
-type Message = protobuf.Message
-
-type String = protobuf.String
-
-type Varint = protobuf.Varint
-
-type Fixed64 = protobuf.Fixed64
-
-const Sleep = 4 * time.Second
-
-var LogLevel format.LogLevel
-
-func parseQuery(query io.Reader) url.Values {
-   vals := make(url.Values)
-   buf := bufio.NewScanner(query)
-   for buf.Scan() {
-      key, val, ok := strings.Cut(buf.Text(), "=")
-      if ok {
-         vals.Add(key, val)
-      }
-   }
-   return vals
-}
-
 type Token struct {
-   Services string
    Token string
 }
 
@@ -172,7 +148,6 @@ func NewToken(email, password string) (*Token, error) {
    }
    val := parseQuery(res.Body)
    var tok Token
-   tok.Services = val.Get("services")
    tok.Token = val.Get("Token")
    return &tok, nil
 }

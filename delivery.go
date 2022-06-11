@@ -1,4 +1,5 @@
 package googleplay
+// github.com/89z
 
 import (
    "errors"
@@ -8,6 +9,54 @@ import (
    "strconv"
 )
 
+type AppFileMetadata struct {
+   FileType uint64
+   DownloadURL string
+}
+
+type Delivery struct {
+   DownloadURL string
+   PackageName string
+   SplitDeliveryData []SplitDeliveryData
+   VersionCode uint64
+   AdditionalFile []AppFileMetadata
+}
+
+func (d Delivery) Additional(typ uint64) string {
+   var buf []byte
+   if typ == 0 {
+      buf = append(buf, "main"...)
+   } else {
+      buf = append(buf, "patch"...)
+   }
+   buf = append(buf, '.')
+   buf = strconv.AppendUint(buf, d.VersionCode, 10)
+   buf = append(buf, '.')
+   buf = append(buf, d.PackageName...)
+   buf = append(buf, ".obb"...)
+   return string(buf)
+}
+
+func (d Delivery) Download() string {
+   var buf []byte
+   buf = append(buf, d.PackageName...)
+   buf = append(buf, '-')
+   buf = strconv.AppendUint(buf, d.VersionCode, 10)
+   buf = append(buf, ".apk"...)
+   return string(buf)
+}
+
+func (d Delivery) Split(id string) string {
+   var buf []byte
+   buf = append(buf, d.PackageName...)
+   buf = append(buf, '-')
+   buf = append(buf, id...)
+   buf = append(buf, '-')
+   buf = strconv.AppendUint(buf, d.VersionCode, 10)
+   buf = append(buf, ".apk"...)
+   return string(buf)
+}
+
 func (h Header) Delivery(app string, ver uint64) (*Delivery, error) {
    req, err := http.NewRequest(
       "GET", "https://play-fe.googleapis.com/fdfe/delivery", nil,
@@ -16,6 +65,7 @@ func (h Header) Delivery(app string, ver uint64) (*Delivery, error) {
       return nil, err
    }
    h.SetAgent(req.Header)
+   h.SetAuth(req.Header) // needed for single APK
    h.SetDevice(req.Header)
    req.URL.RawQuery = url.Values{
       "doc": {app},
@@ -27,6 +77,9 @@ func (h Header) Delivery(app string, ver uint64) (*Delivery, error) {
       return nil, err
    }
    defer res.Body.Close()
+   if res.StatusCode != http.StatusOK {
+      return nil, errors.New(res.Status)
+   }
    responseWrapper, err := protobuf.Decode(res.Body)
    if err != nil {
       return nil, err
@@ -87,55 +140,7 @@ func (h Header) Delivery(app string, ver uint64) (*Delivery, error) {
    return &del, nil
 }
 
-type AppFileMetadata struct {
-   FileType Varint
-   DownloadURL String
-}
-
-func (d Delivery) Additional(typ Varint) string {
-   var buf []byte
-   if typ == 0 {
-      buf = append(buf, "main"...)
-   } else {
-      buf = append(buf, "patch"...)
-   }
-   buf = append(buf, '.')
-   buf = strconv.AppendUint(buf, d.VersionCode, 10)
-   buf = append(buf, '.')
-   buf = append(buf, d.PackageName...)
-   buf = append(buf, ".obb"...)
-   return string(buf)
-}
-
-type Delivery struct {
-   DownloadURL String
-   PackageName string
-   SplitDeliveryData []SplitDeliveryData
-   VersionCode uint64
-   AdditionalFile []AppFileMetadata
-}
-
 type SplitDeliveryData struct {
-   ID String
-   DownloadURL String
-}
-
-func (d Delivery) Split(id String) string {
-   var buf []byte
-   buf = append(buf, d.PackageName...)
-   buf = append(buf, '-')
-   buf = append(buf, id...)
-   buf = append(buf, '-')
-   buf = strconv.AppendUint(buf, d.VersionCode, 10)
-   buf = append(buf, ".apk"...)
-   return string(buf)
-}
-
-func (d Delivery) Download() string {
-   var buf []byte
-   buf = append(buf, d.PackageName...)
-   buf = append(buf, '-')
-   buf = strconv.AppendUint(buf, d.VersionCode, 10)
-   buf = append(buf, ".apk"...)
-   return string(buf)
+   ID string
+   DownloadURL string
 }
