@@ -28,9 +28,9 @@ func main() {
 	// device
 	var device bool
 	flag.BoolVar(&device, "device", false, "create device")
-	// s
+	// dpi
 	var screenDensity int
-	flag.IntVar(&screenDensity, "s", 320, "screen density of device")
+	flag.IntVar(&screenDensity, "dpi", 320, "screen density of device")
 	// email
 	var email string
 	flag.StringVar(&email, "email", "", "your email")
