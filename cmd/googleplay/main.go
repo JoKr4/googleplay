@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	gp "github.com/JoKr4/googleplay"
+	gppkg "github.com/JoKr4/googleplay/pkg/googleplay"
 )
 
 func main() {
@@ -14,6 +15,9 @@ func main() {
 	// d
 	var device bool
 	flag.BoolVar(&device, "d", false, "create device")
+	// s
+	var screenDensity int
+	flag.IntVar(&screenDensity, "s", 320, "screen density of device")
 	// email
 	var email string
 	flag.StringVar(&email, "email", "", "your email")
@@ -52,7 +56,7 @@ func main() {
 	} else {
 		platform := gp.Platforms[platformID]
 		if device {
-			err := doDevice(platform)
+			err := gppkg.DoDevice(platform, screenDensity)
 			if err != nil {
 				panic(err)
 			}

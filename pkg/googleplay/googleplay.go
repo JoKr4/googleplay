@@ -1,6 +1,7 @@
 package googleplay
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -33,4 +34,18 @@ func GetDetails(head *gp.Header, app string) (*gp.Details, error) {
 		details.UploadDate = gp.String(date.Format(gp.DateOutput))
 	}
 	return details, nil
+}
+
+func DoDevice(platform string, screenDensity int) error {
+	cache, err := os.UserCacheDir()
+	if err != nil {
+		return err
+	}
+	device, err := gp.Phone.Checkin(platform, screenDensity)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Sleeping %v for server to process\n", gp.Sleep)
+	time.Sleep(gp.Sleep)
+	return device.Create(cache, "googleplay", platform+".json")
 }

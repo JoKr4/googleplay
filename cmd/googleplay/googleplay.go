@@ -95,7 +95,7 @@ func doDevice(platform string) error {
 	if err != nil {
 		return err
 	}
-	device, err := gp.Phone.Checkin(platform)
+	device, err := gp.Phone.Checkin(platform, 123)
 	if err != nil {
 		return err
 	}
