@@ -82,7 +82,7 @@ func main() {
 					panic(err)
 				}
 			} else if version >= 1 {
-				err := doDelivery(head, app, version)
+				err := gppkg.DoDelivery(head, app, version, dir)
 				if err != nil {
 					panic(err)
 				}
