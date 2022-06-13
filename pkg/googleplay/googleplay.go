@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/89z/format"
-	gp "github.com/JoKr4/googleplay"
 )
 
-func GetDetails(head *gp.Header, app string, parse bool) (*gp.Details, error) {
+func GetDetails(head *Header, app string, parse bool) (*Details, error) {
 	details, err := head.Details(app)
 	if err != nil {
 		return nil, err
@@ -28,7 +27,7 @@ func GetDetails(head *gp.Header, app string, parse bool) (*gp.Details, error) {
 	return details, nil
 }
 
-func DoDelivery(head *gp.Header, app string, ver uint64, dir string) error {
+func DoDelivery(head *Header, app string, ver uint64, dir string) error {
 	download := func(addr, name string) error {
 		fmt.Println("GET", addr)
 		res, err := http.Get(addr)
@@ -75,22 +74,30 @@ func DoDelivery(head *gp.Header, app string, ver uint64, dir string) error {
 	return download(del.DownloadURL, fp)
 }
 
-func DoDevice(dir, platform string, screenDensity int) error {
-	device, err := gp.Phone.Checkin(platform, screenDensity)
+func DoToken(dir, email, password string) error {
+	token, err := NewToken(email, password)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Sleeping %v for server to process\n", gp.Sleep)
-	time.Sleep(gp.Sleep)
+	return token.Create(dir, "token.json")
+}
+
+func DoDevice(dir, platform string, screenDensity int) error {
+	device, err := Phone.Checkin(platform, screenDensity)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Sleeping %v for server to process\n", Sleep)
+	time.Sleep(Sleep)
 	return device.Create(dir, platform+".json")
 }
 
-func GetHeader(dir, platform string, single bool) (*gp.Header, error) {
-	token, err := gp.OpenToken(dir, "token.json")
+func GetHeader(dir, platform string, single bool) (*Header, error) {
+	token, err := OpenToken(dir, "token.json")
 	if err != nil {
 		return nil, err
 	}
-	device, err := gp.OpenDevice(dir, platform+".json")
+	device, err := OpenDevice(dir, platform+".json")
 	if err != nil {
 		return nil, err
 	}

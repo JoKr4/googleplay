@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/89z/format"
-	gp "github.com/JoKr4/googleplay"
-	gppkg "github.com/JoKr4/googleplay/pkg/googleplay"
+	gp "github.com/JoKr4/googleplay/pkg/googleplay"
 )
 
 func main() {
@@ -60,19 +60,19 @@ func main() {
 	flag.Parse()
 	gp.LogLevel = format.LogLevel(level)
 	if email != "" {
-		err := doToken(dir, email, password)
+		err := gp.DoToken(dir, email, password)
 		if err != nil {
 			panic(err)
 		}
 	} else {
 		platform := gp.Platforms[platformID]
 		if device {
-			err := gppkg.DoDevice(dir, platform, screenDensity)
+			err := gp.DoDevice(dir, platform, screenDensity)
 			if err != nil {
 				panic(err)
 			}
 		} else if app != "" {
-			head, err := doHeader(dir, platform, single)
+			head, err := gp.GetHeader(dir, platform, single)
 			if err != nil {
 				panic(err)
 			}
@@ -82,15 +82,16 @@ func main() {
 					panic(err)
 				}
 			} else if version >= 1 {
-				err := gppkg.DoDelivery(head, app, version, dir)
+				err := gp.DoDelivery(head, app, version, dir)
 				if err != nil {
 					panic(err)
 				}
 			} else {
-				err := doDetails(head, app, parse)
+				details, err := gp.GetDetails(head, app, parse)
 				if err != nil {
 					panic(err)
 				}
+				fmt.Print(details)
 			}
 		} else {
 			flag.Usage()

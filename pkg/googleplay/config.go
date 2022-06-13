@@ -1,7 +1,5 @@
 package googleplay
 
-// github.com/89z
-
 import (
 	"bytes"
 	"net/http"
